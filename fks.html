@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ФКС — Таблица дисциплин и уровней интеграции (Holographic Rewards)</title>
+  <style>
+    :root{ --bg:#071026; --card:#0f1a2b; --accent:#7dc8ff; --accent2:#c878ff; --muted:rgba(255,255,255,0.66); }
+    html,body{height:100%;margin:0;font-family:Inter, Roboto, Arial, sans-serif;background-color: #031026;color:#e8f6ff}
+    header{padding:18px 24px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,0.03);position:sticky;top:0;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);backdrop-filter:blur(6px);z-index:10}
+    header img{height:36px}
+    header h1{font-size:18px;margin:0}
+    .container{max-width:1200px;margin:22px auto;padding:16px}
+    .lead{color:var(--muted);margin-bottom:12px}
+    .legend{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .pill{background:rgba(255,255,255,0.02);padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);font-size:13px}
+    table{width:100%;border-collapse:collapse;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);border:1px solid rgba(255,255,255,0.04);border-radius:12px;overflow:hidden}
+    thead th{/*position:sticky;top:72px;*/background:linear-gradient(180deg, rgba(10,18,40,0.9), rgba(10,18,40,0.8));padding:12px;font-size:13px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.03)}
+    tbody td{padding:12px;font-size:13px;border-bottom:1px dashed rgba(255,255,255,0.03);vertical-align:top}
+    tbody tr:hover td{background:rgba(125,200,255,0.02)}
+    .badge{display:inline-block;padding:4px 8px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.02);font-size:12px}
+    .level{font-weight:700;color:var(--accent)}
+    .muted{color:var(--muted);font-size:13px}
+    .section{margin-top:18px;padding:12px;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);border-radius:10px;border:1px solid rgba(255,255,255,0.03)}
+    @media (max-width:980px){ table, thead, tbody, th, td, tr{display:block} thead{display:none} tr{margin-bottom:12px} td{padding:10px;border-bottom:0} td:before{font-weight:700;display:block;margin-bottom:6px;color:var(--muted)} td[data-label]:before{content:attr(data-label);} }
+  thead th{
+  /* position: sticky;
+  top: var(--header-height, 0px); */ /* будет подставлено JS-ом */
+  z-index: 50;                    /* чтобы заголовок был выше остальных слоёв */
+  background: linear-gradient(180deg, rgba(10,18,40,0.95), rgba(10,18,40,0.95));
+  /* фон делает заголовок непрозрачным, чтобы подложка не просвечивала */
+}td.GT {font-weight: bolder;text-transform: uppercase;}
+  </style>
+</head>
+<body>
+  <header>
+    <img src="https://blockchainaccreditive.github.io/css/iokwa.svg" alt="logo">
+    <h1>ФКС — Дисциплины и модели интеграции (включая Holographic Rewards)</h1>
+  </header>
+
+  <div class="container">
+    <p class="lead">Таблица содержит полный перечень дисциплин, по которым ФКС проводит турниры, и рекомендуемые уровни интеграции нашей системы вознаграждений. Для каждой дисциплины описаны варианты интеграции (от глубокой до поверхностной), краткий план внедрения и конкретные выгоды для ФКС.</p>
+
+    <div class="legend">
+      <div class="pill"><strong>Уровни интеграции:</strong></div>
+      <div class="pill"><b>A — Нативный SDK (встраивание в клиент)</b></div>
+      <div class="pill"><b>B — Tournament Server / Match Manager</b></div>
+      <div class="pill"><b>C — Observer / Replay parsing</b></div>
+      <div class="pill"><b>D — Overlay / Launcher (Overwolf, Steam)</b></div>
+      <div class="pill"><b>E — Рефери / Human-in-the-loop</b></div>
+      <div class="pill"><b>F — Scrape / Screen parsing (last-resort)</b></div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>№</th>
+          <th>Игра / Дисциплина</th>
+          <th>Платформа</th>
+          <th>Частота</th>
+          <th>Рекомендованный уровень интеграции</th>
+          <th>Как мы интегрируемся (подробно)</th>
+          <th>Что даёт это ФКС</th>
+        </tr>
+      </thead>
+      <tbody>
+
+<!-- Rows: 1..33 -->
+<tr>
+  <td data-label="№">1</td>
+  <td data-label="Игра" class="GT">Dota 2</td>
+  <td data-label="Платформа">PC (Valve)</td>
+  <td data-label="Частота">Регулярно</td>
+  <td data-label="Уровень" class="level">B / C</td>
+  <td data-label="Интеграция">Интеграция через tournament server (B): матч-серверы ФКС отправляют подписанные summary-events (match_id, победитель, mvp, статистика). Дополнительно — парсинг replays/GOTV (C) для проверки спорных ситуаций. Мы предоставляем модуль валидации подписи, нормализации метрик и push в Rules Engine.</td>
+  <td data-label="Выгоды">Надёжность результатов, уменьшение спорных кейсов, автоматизация начислений призов/бонусов, прозрачный аудит турниров.</td>
+</tr>
+
+<tr>
+  <td>2</td>
+  <td class="GT">Counter‑Strike 2 (CS2)</td>
+  <td>PC (Valve)</td>
+  <td>Регулярно</td>
+  <td class="level">B / C / D</td>
+  <td>Предлагаем интеграцию через tournament GOTV/match server (B) с демо-парсингом (C). Overlay (D) — для лиг/локальных матче́й можно подключать overlay-сборщик статистики. Поддержка idempotency (round_id, match_id).</td>
+  <td>Авто-начисления MVP/премий, быстрый разбор споров (демо), улучшенная зрелищность — overlay даёт брендинг партнёров.</td>
+</tr>
+
+<tr>
+  <td>3</td>
+  <td class="GT">League of Legends (LoL)</td>
+  <td>PC (Riot)</td>
+  <td>Регулярно</td>
+  <td class="level">B / C</td>
+  <td>Интеграция через Riot Tournament API / Match server (B). Если доступен referee feed — подписанные события отправляются напрямую. Observer/replay парсинг (C) — резерв. Наша система поддерживает canonical schema для LoL metrics.</td>
+  <td>Снижение ручной работы, автоматическое начисление призов, аудит матчей и возможность продавать телеметрию.</td>
+</tr>
+
+<tr>
+  <td>4</td>
+  <td class="GT">Valorant</td>
+  <td>PC</td>
+  <td>Регулярно</td>
+  <td class="level">B / D</td>
+  <td>Интеграция через турнирный сервер/рефери (B). Overlay (D) для зрителей/стримов. Подписи событий рефери/TO для верификации выплат.</td>
+  <td>Автоматизация начислений, возможность интеграции спонсоров в payouts, контроль честности матчей.</td>
+</tr>
+
+<tr>
+  <td>5</td>
+  <td class="GT">PUBG (PC)</td>
+  <td>PC</td>
+  <td>Регулярно</td>
+  <td class="level">B / A</td>
+  <td>Лучше работать через tournament servers (B) — в крупных турнирах организатор управляет матчами. Для прямого сотрудничества с издателем — возможно встраивание SDK (A). Предоставляем ingestion и validation.</td>
+  <td>Точные результаты матчей (placement, damage), упрощение начислений и статистического анализа.</td>
+</tr>
+
+<tr>
+  <td>6</td>
+  <td class="GT">PUBG Mobile</td>
+  <td>Mobile</td>
+  <td>Регулярно</td>
+  <td class="level">A / B</td>
+  <td>Мобильный SDK (A) рекомендуем для партнёрских турниров; tournament server (B) — альтернативный путь. SDK поддерживает offline queue и подпись событий через DID.</td>
+  <td>Быстрые выплаты, защита от подмены сессий, удобство для мобильной аудитории.</td>
+</tr>
+
+<tr>
+  <td>7</td>
+  <td class="GT">Mobile Legends: Bang Bang (MLBB)</td>
+  <td>Mobile</td>
+  <td>Регулярно</td>
+  <td class="level">A / B</td>
+  <td>Партнёрский SDK для мобильных турниров и/referee server для официальных матчей. Обеспечим privacy-preserving telemetry для marketplace.</td>
+  <td>Рост вовлечения мобильной аудитории, автоматизация расчёта призов и аналитика зрелищности.</td>
+</tr>
+
+<tr>
+  <td>8</td>
+  <td class="GT">eFootball (PES)</td>
+  <td>PC/Console</td>
+  <td>Регулярно</td>
+  <td class="level">B / E</td>
+  <td>Интеграция через tournament server (B) с upload результатов; в спорных матчах — referee verification (E). Поддержка stat parsing из replays.</td>
+  <td>Чёткая система начисления за соревнования, сокращение спорных кейсов, возможность брендовых призов.</td>
+</tr>
+
+<tr>
+  <td>9</td>
+  <td class="GT">FIFA / EA Sports FC</td>
+  <td>PC/Console</td>
+  <td>Регулярно</td>
+  <td class="level">B / E</td>
+  <td>Tournament server + referee flow; при отсутствии API — human-verification через referee UI. Мы поставляем UI+API для referee и автоматическую выплату при подтверждении.</td>
+  <td>Прозрачное начисление призов, интеграция спонсоров, снижение конфликтов.</td>
+</tr>
+
+<tr>
+  <td>10</td>
+  <td class="GT">War Thunder</td>
+  <td>PC</td>
+  <td>Регулярно</td>
+  <td class="level">B / E</td>
+  <td>Используем tournament server + referee checks; парсинг реплеев для подтверждения результатов. Интеграция telemetry для аналитики.</td>
+  <td>Автоматизация турнирных выплат, достоверная статистика и улучшенное освещение событий.</td>
+</tr>
+
+<tr>
+  <td>11</td>
+  <td class="GT">World of Tanks (WoT)</td>
+  <td>PC</td>
+  <td>Регулярно</td>
+  <td class="level">B / C</td>
+  <td>Tournament server с реплеями; парсинг логов для подтверждения результатов. Предлагаем модуль reconciliation для учета спорных случаев.</td>
+  <td>Надежная автоматическая верификация результатов и учет призовых фондов.</td>
+</tr>
+
+<tr>
+  <td>12</td>
+  <td class="GT">Hearthstone</td>
+  <td>PC/Mobile</td>
+  <td>Регулярно</td>
+  <td class="level">B / E</td>
+  <td>Tournament server integration или referee UI; поддерживаем proof-of-win snapshots и replay upload.</td>
+  <td>Упрощение управления призовыми и прозрачность результатов.</td>
+</tr>
+
+<tr>
+  <td>13</td>
+  <td class="GT">Tekken 7 / Tekken 8</td>
+  <td>Console/PC</td>
+  <td>Регулярно</td>
+  <td class="level">E / D</td>
+  <td>Часто используется human-referee (E) — рефери UI + видео-доказательства; overlay (D) возможен для трансляций. Мы поставляем referee workflow и payouts adapter.</td>
+  <td>Быстрая верификация, удобство для локальных LAN-турниров, интеграция спонсоров.</td>
+</tr>
+
+<tr>
+  <td>14</td>
+  <td class="GT">Apex Legends</td>
+  <td>PC/Console</td>
+  <td>Регулярно / Периодически</td>
+  <td class="level">B / C</td>
+  <td>Tournament server для official events; observer/replay parsing для validation. Предоставляем ingestion + anti-fraud checks.</td>
+  <td>Быстрое начисление наград, устойчивость к фальсификациям.</td>
+</tr>
+
+<tr>
+  <td>15</td>
+  <td class="GT">Rocket League</td>
+  <td>PC/Console</td>
+  <td>Регулярно</td>
+  <td class="level">B / C / D</td>
+  <td>Tournament server + replay parsing; overlay для трансляций. Мы поддерживаем RCON/API integration и replay-analysis module.</td>
+  <td>Повышение автоматизации, улучшенные зрительские вставки, интеграция наград.</td>
+</tr>
+
+<tr>
+  <td>16</td>
+  <td class="GT">Call of Duty: Warzone</td>
+  <td>PC/Console</td>
+  <td>Периодически</td>
+  <td class="level">B / C</td>
+  <td>Tournament server и observer streams, парсинг итогов матчей. Наш pipeline поддерживает large-match aggregation (battle royale).</td>
+  <td>Эффективное распределение призовых в large-scale матчах, аудит и антифрод.</td>
+</tr>
+
+<tr>
+  <td>17</td>
+  <td class="GT">Call of Duty: Mobile</td>
+  <td>Mobile</td>
+  <td>Периодически</td>
+  <td class="level">A / B</td>
+  <td>Mobile SDK для подписанных событий (A) или tournament server (B). Поддерживаем WalletConnect/DID для player identity.</td>
+  <td>Массовые мобильные турниры с автоматизированной системой выплат и analytics.</td>
+</tr>
+
+<tr>
+  <td>18</td>
+  <td class="GT">Free Fire</td>
+  <td>Mobile</td>
+  <td>Периодически</td>
+  <td class="level">A / B</td>
+  <td>SDK для мобильных турниров и/или серверные summary-events; поддержка anti-cheat telemetry upload в режиме sandbox.</td>
+  <td>Снижение затрат на модерацию, автоматизация payouts, интеграция брендов.</td>
+</tr>
+
+<tr>
+  <td>19</td>
+  <td class="GT">Clash Royale</td>
+  <td>Mobile</td>
+  <td>Периодически</td>
+  <td class="level">B / E</td>
+  <td>Tournament server + referee UI для casual/ladder events. Обработка replay/разборов при спорных матчах.</td>
+  <td>Более плавное проведение турниров, прозрачность и автоматизация призовых.</td>
+</tr>
+
+<tr>
+  <td>20</td>
+  <td class="GT">Brawl Stars</td>
+  <td>Mobile</td>
+  <td>Периодически</td>
+  <td class="level">A / B</td>
+  <td>SDK для mobile events; tournament server integration. Мы поддерживаем telemetry aggregation и anti-fraud rules для мобильной среды.</td>
+  <td>Повышение вовлечения мобильных игроков и автоматизация выплат.</td>
+</tr>
+
+<tr>
+  <td>21</td>
+  <td class="GT">StarCraft II</td>
+  <td>PC</td>
+  <td>Периодически</td>
+  <td class="level">B / C</td>
+  <td>Tournament server (B), replay parsing (C) для точности. Поддерживаем legacy replay formats и canonical metrics.</td>
+  <td>Историческая аудитория, автоматизация призов, анализ матчей для трансляций.</td>
+</tr>
+
+<tr>
+  <td>22</td>
+  <td class="GT">Rainbow Six Siege</td>
+  <td>PC/Console</td>
+  <td>Периодически</td>
+  <td class="level">B / C</td>
+  <td>Интеграция через турнирный сервер; парсинг энерджи/round stats; referee verification при спорных случаях.</td>
+  <td>Снижение спорных кейсов, улучшение spectator experience.</td>
+</tr>
+
+<tr>
+  <td>23</td>
+  <td class="GT">Overwatch 2</td>
+  <td>PC/Console</td>
+  <td>Периодически</td>
+  <td class="level">B / C</td>
+  <td>Поддержка match server ingestion; парсинг реplays/official logs для верификации. Рефери workflow для offline events.</td>
+  <td>Надёжная автоматизация результата, аналитика матчей.</td>
+</tr>
+
+<tr>
+  <td>24</td>
+  <td class="GT">Wild Rift (LoL: WR)</td>
+  <td>Mobile</td>
+  <td>Периодически</td>
+  <td class="level">A / B</td>
+  <td>Мобильный SDK и tournament server; поддержка spectator/replay где доступно. Мы адаптируем LoL schema для WR.</td>
+  <td>Рост мобильной аудитории ФКС, автоматизация начислений.</td>
+</tr>
+
+<tr>
+  <td>25</td>
+  <td class="GT">Teamfight Tactics (TFT)</td>
+  <td>PC/Mobile</td>
+  <td>Периодически</td>
+  <td class="level">B / C</td>
+  <td>Интеграция с tournament server; сбор статистики матчей и ranking summaries. Replay/observer parsing при необходимости.</td>
+  <td>Автоматизация начислений по placement и рейтингу, аналитика meta.</td>
+</tr>
+
+<tr>
+  <td>26</td>
+  <td class="GT">Dota Underlords</td>
+  <td>PC/Mobile</td>
+  <td>Периодически</td>
+  <td class="level">B / C</td>
+  <td>Tournament server ingestion; canonical event summaries. Поддержка placement и performance metrics.</td>
+  <td>Автоматическое распределение призов, прозрачная статистика.</td>
+</tr>
+
+<tr>
+  <td>27</td>
+  <td class="GT">Quake Champions</td>
+  <td>PC</td>
+  <td>Периодически</td>
+  <td class="level">B / C</td>
+  <td>Match server integration + replay parsing; поддержка fast-paced stats ingestion.</td>
+  <td>Точные начисления и аудит, антифрод для сетевых баталий.</td>
+</tr>
+
+<tr>
+  <td>28</td>
+  <td class="GT">Калибр (Caliber)</td>
+  <td>PC</td>
+  <td>Поддерживается</td>
+  <td class="level">B / D</td>
+  <td>Партнёрство с разработчиком/турнирным сервером; overlay для трансляций; referee UI для LAN.</td>
+  <td>Улучшение локальных инициатив и интеграция с национальными площадками.</td>
+</tr>
+
+<tr>
+  <td>29</td>
+  <td class="GT">World of Warships (WoWS)</td>
+  <td>PC</td>
+  <td>Периодически</td>
+  <td class="level">B / C</td>
+  <td>Интеграция через server logs и official replays; tournament server для регламентированных событий.</td>
+  <td>Удобное управление турнирами и прозрачное начисление призов.</td>
+</tr>
+
+<tr>
+  <td>30</td>
+  <td class="GT">WoT Blitz (мобильная)</td>
+  <td>Mobile</td>
+  <td>Периодически</td>
+  <td class="level">A / B</td>
+  <td>Mobile SDK или tournament server; telemetry и replay upload для подтверждения результатов.</td>
+  <td>Увеличение мобильного сегмента, быстрые выплаты участникам.</td>
+</tr>
+
+<tr>
+  <td>31</td>
+  <td class="GT">Standoff 2</td>
+  <td>Mobile</td>
+  <td>Периодически</td>
+  <td class="level">A / B</td>
+  <td>SDK + tournament server; anti-cheat telemetry; referee UI для LAN/official events.</td>
+  <td>Надёжность результатов, мобильная аудитория, интеграция призов.</td>
+</tr>
+
+<tr>
+  <td>32</td>
+  <td class="GT">Своя Игра (Phygital)</td>
+  <td>Physical + Digital</td>
+  <td>Phygital Games</td>
+  <td class="level">E</td>
+  <td>Human-in-the-loop: судьи фиксируют результаты через referee UI; дополнительно sensor data / IoT подключение для подтверждения физ.активности. Мы предоставляем платформу для валидации и payouts.</td>
+  <td>Организация уникальных дисциплин, прозрачная обработка результатов, удобная выплата призов и грантов.</td>
+</tr>
+
+<tr>
+  <td>33</td>
+  <td class="GT">Финансовая грамотность (Phygital)</td>
+  <td>Physical + Digital</td>
+  <td>Phygital Games</td>
+  <td class="level">E</td>
+  <td>Рефери/комиссия верифицируют достижения; платформа агрегирует результаты образовательных активностей и выплачивает гранты/поощрения.</td>
+  <td>Поддержка образовательных инициатив, прозрачная выдача грантов и субсидий.</td>
+</tr>
+
+      </tbody>
+    </table>
+
+    <div class="section">
+      <h3>Как мы, как партнёр, встраиваемся в процессы ФКС — подробный обзор</h3>
+      <ol class="muted">
+        <li><strong>Договорной этап:</strong> MOU с ФКС, определение ответственности (оператор vs организатор), SLA, обработка спорных случаев.</li>
+        <li><strong>Техническая интеграция:</strong> предоставляем Gateway, SDK, referee UI и adapters (EMTECH sandbox, token mint, data marketplace).</li>
+        <li><strong>Пилот:</strong> запускаем пилот на 1–2 дисциплинах (рекомендуется Dota2 + PUBG Mobile). Тестируем цепочку events → rules → settlement.</li>
+        <li><strong>Операционные процессы:</strong> настраиваем manual review для high-value payouts, процедуру KYC/ESIA через MAX, и SLAs на выплату.</li>
+        <li><strong>Мониторинг и безопасность:</strong> HSM/multisig для custody; anti-fraud; audit logs; регулярные проверки.</li>
+        <li><strong>Развёртывание:</strong> масштабируем интеграцию по дисциплинам, подключаем marketplace и спонсоров.</li>
+      </ol>
+
+      <h4>Что конкретно мы предоставляем:</h4>
+      <ul class="muted">
+        <li>Инфраструктуру Gateway + Rules Engine для начислений;</li>
+        <li>SDK для Unity/Unreal/Android/iOS и интеграции tournament servers;</li>
+        <li>Referee UI для ручной верификации и dispute handling;</li>
+        <li>Settlement adapters (EMTECH e‑Cedi sandbox, mock цифровой рубль, token mint, data marketplace);</li>
+        <li>Anti-fraud модуль и analytics dashboard для ФКС;</li>
+        <li>Поддержка интеграции KYC через MAX/ESIA и подписи ЭЦП для batch‑выплат.</li>
+      </ul>
+
+      <h4>Коротко: какие выгоды получает ФКС</h4>
+      <ul class="muted">
+        <li>Автоматизация выплат и учёта призовых фондов;</li>
+        <li>Снижение спорных кейсов и ускорение dispute resolution;</li>
+        <li>Повышение прозрачности (auditable logs) для спонсоров и регуляторов;</li>
+        <li>Новые доходы: продажи анонимной телеметрии, sponsorship integration, branded payouts;</li>
+        <li>Рост участия и вовлечённости игроков (материальная мотивация);</li>
+        <li>Гибкая поддержка CBDC и digital‑rubles — интеграция с официальными sandbox.</li>
+      </ul>
+
+      <h4>Риски и принятые меры</h4>
+      <p class="muted">Мы учитываем риски (fraud, legal, scale) и предлагаем набор mitigations: KYC thresholds, stake/slash, HSM custody, idempotency keys, circuit breakers и manual review — подробно в общей документации.</p>
+
+      <h4>Быстрый roadmap запуска (4 шага)</h4>
+      <ol class="muted">
+        <li>Подписание MOU и определение пилотных дисциплин.</li>
+        <li>Технический kickoff: предоставление sandbox keys, обмен API specs.</li>
+        <li>Пилотный турнир + интеграционные тесты (ingest→settlement→webhook).</li>
+        <li>Оценка KPI и масштабирование.</li>
+      </ol>
+
+      <p class="muted"><b>Octo Rewards © 2025</b></p>
+    </div>
+
+  </div>
+  <!--<script>
+(function(){
+  function applyHeaderHeight(){
+    try{
+      var header = document.querySelector('header');
+      var h = 0;
+      if(header){
+        // offsetHeight включает padding + border, что нам и надо
+        h = header.offsetHeight;
+      }
+      // добавим небольшой запас 2px на бордер/outline, если нужно
+      document.documentElement.style.setProperty('--header-height', (h + 0) + 'px');
+    }catch(e){
+      console.warn('applyHeaderHeight failed', e);
+    }
+  }
+  // применить сразу и при ресайзе (и при изменении шрифта)
+  applyHeaderHeight();
+  window.addEventListener('resize', applyHeaderHeight);
+  // на случай динамических изменений в header (меню, всплывающие элементы)
+  var ro = new MutationObserver(function(){ applyHeaderHeight(); });
+  var hdr = document.querySelector('header');
+  if(hdr) ro.observe(hdr, { attributes:true, childList:true, subtree:true });
+})();
+</script>-->
+</body>
+</html>
