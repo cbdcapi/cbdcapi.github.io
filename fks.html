@@ -74,7 +74,7 @@
   <td data-label="Платформа">PC (Valve)</td>
   <td data-label="Частота">Регулярно</td>
   <td data-label="Уровень" class="level">B / C</td>
-  <td data-label="Интеграция">Интеграция через tournament server (B): матч-серверы ФКС отправляют подписанные summary-events (match_id, победитель, mvp, статистика). Дополнительно — парсинг replays/GOTV (C) для проверки спорных ситуаций. Мы предоставляем модуль валидации подписи, нормализации метрик и push в Rules Engine.</td>
+  <td data-label="Интеграция">Интеграция через <b>tournament server (B)</b>: матч-серверы ФКС отправляют подписанные summary-events (match_id, победитель, mvp, статистика). Дополнительно — парсинг replays/GOTV (C) для проверки спорных ситуаций. Мы предоставляем модуль валидации подписи, нормализации метрик и push в Rules Engine.</td>
   <td data-label="Выгоды">Надёжность результатов, уменьшение спорных кейсов, автоматизация начислений призов/бонусов, прозрачный аудит турниров.</td>
 </tr>
 
@@ -84,7 +84,7 @@
   <td>PC (Valve)</td>
   <td>Регулярно</td>
   <td class="level">B / C / D</td>
-  <td>Предлагаем интеграцию через tournament GOTV/match server (B) с демо-парсингом (C). Overlay (D) — для лиг/локальных матче́й можно подключать overlay-сборщик статистики. Поддержка idempotency (round_id, match_id).</td>
+  <td>Интеграцию через <b>tournament GOTV/match server (B)</b> с демо-парсингом <b>(C)</b>. <b>Overlay (D)</b> — для лиг/локальных матче́й можно подключать <b>overlay-сборщик статистики</b>. Поддержка <b>idempotency (round_id, match_id)</b>.</td>
   <td>Авто-начисления MVP/премий, быстрый разбор споров (демо), улучшенная зрелищность — overlay даёт брендинг партнёров.</td>
 </tr>
 
@@ -94,7 +94,7 @@
   <td>PC (Riot)</td>
   <td>Регулярно</td>
   <td class="level">B / C</td>
-  <td>Интеграция через Riot Tournament API / Match server (B). Если доступен referee feed — подписанные события отправляются напрямую. Observer/replay парсинг (C) — резерв. Наша система поддерживает canonical schema для LoL metrics.</td>
+  <td>Интеграция через <b>Riot Tournament API / Match server (B)</b>. Если доступен referee feed — подписанные события отправляются напрямую. <b>Observer/replay парсинг (C)</b> — резерв. Наша система поддерживает <b>canonical schema для LoL metrics</b>.</td>
   <td>Снижение ручной работы, автоматическое начисление призов, аудит матчей и возможность продавать телеметрию.</td>
 </tr>
 
@@ -104,7 +104,7 @@
   <td>PC</td>
   <td>Регулярно</td>
   <td class="level">B / D</td>
-  <td>Интеграция через турнирный сервер/рефери (B). Overlay (D) для зрителей/стримов. Подписи событий рефери/TO для верификации выплат.</td>
+  <td>Интеграция через <b>турнирный сервер/рефери (B)</b>. <b>Overlay (D)</b> для зрителей/стримов. Подписи событий рефери/TO для верификации выплат.</td>
   <td>Автоматизация начислений, возможность интеграции спонсоров в payouts, контроль честности матчей.</td>
 </tr>
 
@@ -114,8 +114,8 @@
   <td>PC</td>
   <td>Регулярно</td>
   <td class="level">B / A</td>
-  <td>Лучше работать через tournament servers (B) — в крупных турнирах организатор управляет матчами. Для прямого сотрудничества с издателем — возможно встраивание SDK (A). Предоставляем ingestion и validation.</td>
-  <td>Точные результаты матчей (placement, damage), упрощение начислений и статистического анализа.</td>
+  <td>Лучше работать через <b>tournament servers (B)</b> — в крупных турнирах организатор управляет матчами. Для прямого сотрудничества с издателем — возможно встраивание SDK (A). Предоставляем <b>ingestion и validation</b>.</td>
+  <td>Точные результаты матчей (<b>placement, damage</b>), упрощение начислений и статистического анализа.</td>
 </tr>
 
 <tr>
@@ -134,7 +134,7 @@
   <td>Mobile</td>
   <td>Регулярно</td>
   <td class="level">A / B</td>
-  <td>Партнёрский SDK для мобильных турниров и/referee server для официальных матчей. Обеспечим privacy-preserving telemetry для marketplace.</td>
+  <td>Партнёрский SDK для мобильных турниров и/referee server для официальных матчей. Обеспечим <b>privacy-preserving telemetry для marketplace</b>.</td>
   <td>Рост вовлечения мобильной аудитории, автоматизация расчёта призов и аналитика зрелищности.</td>
 </tr>
 
@@ -144,7 +144,7 @@
   <td>PC/Console</td>
   <td>Регулярно</td>
   <td class="level">B / E</td>
-  <td>Интеграция через tournament server (B) с upload результатов; в спорных матчах — referee verification (E). Поддержка stat parsing из replays.</td>
+  <td>Интеграция через <b>tournament server (B) с upload результатов</b>; в спорных матчах — <b>referee verification (E)</b>. Поддержка <b>stat parsing из replays</b>.</td>
   <td>Чёткая система начисления за соревнования, сокращение спорных кейсов, возможность брендовых призов.</td>
 </tr>
 
@@ -154,7 +154,7 @@
   <td>PC/Console</td>
   <td>Регулярно</td>
   <td class="level">B / E</td>
-  <td>Tournament server + referee flow; при отсутствии API — human-verification через referee UI. Мы поставляем UI+API для referee и автоматическую выплату при подтверждении.</td>
+  <td><b>Tournament server + referee flow</b>; при отсутствии <b>API — human-verification через referee UI</b>. Мы поставляем <b>UI+API</b> для referee и автоматическую выплату при подтверждении.</td>
   <td>Прозрачное начисление призов, интеграция спонсоров, снижение конфликтов.</td>
 </tr>
 
@@ -164,7 +164,7 @@
   <td>PC</td>
   <td>Регулярно</td>
   <td class="level">B / E</td>
-  <td>Используем tournament server + referee checks; парсинг реплеев для подтверждения результатов. Интеграция telemetry для аналитики.</td>
+  <td>Используем <b>tournament server + referee checks</b>; парсинг реплеев для подтверждения результатов. Интеграция <b>telemetry для аналитики</b>.</td>
   <td>Автоматизация турнирных выплат, достоверная статистика и улучшенное освещение событий.</td>
 </tr>
 
@@ -174,7 +174,7 @@
   <td>PC</td>
   <td>Регулярно</td>
   <td class="level">B / C</td>
-  <td>Tournament server с реплеями; парсинг логов для подтверждения результатов. Предлагаем модуль reconciliation для учета спорных случаев.</td>
+  <td><b>Tournament server с реплеями</b>; парсинг логов для подтверждения результатов. Предлагаем <b>модуль reconciliation для учета спорных случаев</b>.</td>
   <td>Надежная автоматическая верификация результатов и учет призовых фондов.</td>
 </tr>
 
@@ -184,7 +184,7 @@
   <td>PC/Mobile</td>
   <td>Регулярно</td>
   <td class="level">B / E</td>
-  <td>Tournament server integration или referee UI; поддерживаем proof-of-win snapshots и replay upload.</td>
+  <td><b>Tournament server integration или referee UI</b>; поддерживаем <b>proof-of-win snapshots и replay upload</b>.</td>
   <td>Упрощение управления призовыми и прозрачность результатов.</td>
 </tr>
 
@@ -194,7 +194,7 @@
   <td>Console/PC</td>
   <td>Регулярно</td>
   <td class="level">E / D</td>
-  <td>Часто используется human-referee (E) — рефери UI + видео-доказательства; overlay (D) возможен для трансляций. Мы поставляем referee workflow и payouts adapter.</td>
+  <td>Используется <b>human-referee (E) — рефери UI + видео-доказательства; overlay (D)</b> для трансляций. Мы поставляем <b>referee workflow и payouts adapter</b>.</td>
   <td>Быстрая верификация, удобство для локальных LAN-турниров, интеграция спонсоров.</td>
 </tr>
 
