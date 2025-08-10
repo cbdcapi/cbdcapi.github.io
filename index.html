@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Holographic Rewards Gateway — Simulation (Single Page)</title>
+  <!--
+    Универсальная, ES5-совместимая версия документа.
+
+    Цель: устранить синтаксические ошибки на старых/ограниченных рантаймах
+    (включая ошибки типа "Unexpected token 'const'"), а также обработать
+    ошибки подключения MetaMask аккуратно.
+
+    Основные изменения по сравнению с предыдущей версией:
+    - Отказ от ES6 синтаксиса: нет const/let, нет стрелочных функций, нет шаблонных строк, нет литералов BigInt.
+    - Безопасный логгер safeStringify, не использующий WeakSet (для совместимости).
+    - Везде защищённые обращения к DOM и к window.ethereum.
+    - Диагностические тесты для эмуляции провайдера и ошибок.
+
+    Если ошибка повторится, пожалуйста отправьте полную строку из лога (entry) и
+    укажите браузер и версию MetaMask — я проанализирую дальше.
+  -->
+  <style>
+    ::-webkit-scrollbar { width: 0px; }
+    :root{ --bg:#071026; --glass: rgba(255,255,255,0.06); --accent1: 125,200,255; --accent2: 200,120,255; --panel-radius: 14px; --glass-border: rgba(255,255,255,0.06); --neon: 0 0 24px rgba(125,200,255,0.12), inset 0 0 30px rgba(125,200,255,0.02); --glass-blur: 10px; --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
+    html,body{height:100%;margin:0;background:radial-gradient(1200px 800px at 10% 10%, rgba(25,40,80,0.6), transparent), radial-gradient(900px 600px at 90% 90%, rgba(40,10,60,0.6), transparent), #071026; color:#e6f0ff; font-family:var(--font-sans);} 
+    .bg-grid{position:fixed;inset:0;pointer-events:none;z-index:0;} .grid-canvas{width:100%;height:100%;transform:translateZ(0);} header.site-header{position:fixed;left:0;right:0;top:0;display:flex;align-items:center;gap:16px;padding:14px 24px;background:linear-gradient(180deg, rgba(10,18,40,0.6), rgba(10,18,40,0.2));backdrop-filter:blur(6px);z-index:10;border-bottom:1px solid rgba(255,255,255,0.03)} header .logo{display:flex;align-items:center;gap:12px} header .logo img{height:36px} header nav{display:flex;gap:12px;margin-left:8px} header a{color:inherit;text-decoration:none;padding:8px 10px;border-radius:8px;font-size:13px;opacity:0.9} header a:hover{background:rgba(255,255,255,0.02)} header .header-right{margin-left:auto;display:flex;gap:12px;align-items:center}
+    .stage{position:relative;z-index:2;min-height:100vh;padding:94px 40px 40px 40px;display:flex;gap:20px;align-items:flex-start;} .panel{backdrop-filter: blur(var(--glass-blur)); background:linear-gradient(135deg, rgba(125,200,255,0.03), rgba(200,120,255,0.02)); border-radius:var(--panel-radius); border:1px solid rgba(255,255,255,0.06); box-shadow:0 0 24px rgba(125,200,255,0.12), inset 0 0 30px rgba(125,200,255,0.02); padding:18px; min-width:320px; transform-style:preserve-3d; transition:transform .22s ease, box-shadow .22s ease;} .panel:hover{transform:translateY(-8px) rotateX(3deg); box-shadow:0 18px 80px rgba(0,0,0,0.6), 0 0 36px rgba(125,200,255,0.14);} h1.header{font-size:20px;margin:0 0 8px 0;letter-spacing:0.6px} .sub{font-size:12px;opacity:0.8;margin-bottom:12px} .controls{display:flex;flex-direction:column;gap:8px} .row{display:flex;gap:8px;align-items:center} input[type=number], input[type=text], select{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px 10px;border-radius:8px;color:inherit;min-width:120px} button{background:linear-gradient(90deg, rgba(125,200,255,0.12), rgba(200,120,255,0.12)); border:1px solid rgba(255,255,255,0.06); padding:10px 14px; border-radius:10px; cursor:pointer;color: #eaffff} .muted{opacity:0.6;font-size:12px} .metrics{display:flex;gap:12px;margin-top:12px} .metric{min-width:120px;padding:10px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.012), transparent);border:1px solid rgba(255,255,255,0.03);} .metric .big{font-weight:700;font-size:18px} .metric .small{font-size:12px;opacity:0.7} .scenario-list{display:flex;flex-direction:column;gap:8px} .scenario{padding:10px;border-radius:10px;border:1px dashed rgba(255,255,255,0.04);cursor:pointer} .scenario.active{border-style:solid;background:linear-gradient(90deg, rgba(125,200,255,0.03), rgba(200,120,255,0.03));} .log{height:340px; overflow:auto; background:linear-gradient(180deg, rgba(0,0,0,0.08), rgba(255,255,255,0.01)); padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.02); font-family:monospace; font-size:12px} .log .entry{margin-bottom:8px} .pill{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;margin-right:6px} .pill.success{background:rgba(90,200,120,0.12);color:#bff1c3;border:1px solid rgba(90,200,120,0.08)} .pill.warn{background:rgba(240,200,80,0.08);color:#fff4b6;border:1px solid rgba(240,200,80,0.06)} .pill.err{background:rgba(255,80,120,0.06);color:#ffd6e0;border:1px solid rgba(255,80,120,0.06)} .left-col{width:420px;display:flex;flex-direction:column;gap:14px} .center-col{flex:1;display:flex;flex-direction:column;gap:14px} .right-col{width:420px;display:flex;flex-direction:column;gap:14px} .badge{font-size:11px;padding:6px 8px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.02)} .slider{width:100%} .footer{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;padding:10px 16px;border-radius:999px;background:linear-gradient(90deg, rgba(125,200,255,0.04), rgba(200,120,255,0.03));border:1px solid rgba(255,255,255,0.03)} @media (max-width:1000px){.left-col,.right-col{display:none}.center-col{padding:20px}}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="logo">
+      <img src="https://blockchainaccreditive.github.io/css/iokwa.svg" alt="logo" />
+      <div style="display:flex;flex-direction:column;line-height:1">
+        <strong>Holographic Rewards Gateway</strong>
+        <small class="muted">симулятор вознаграждений (прототип)</small>
+      </div>
+    </div>
+    <nav>
+      <a href="#">Главная</a>
+      <a href="#">Документация</a>
+      <a href="#">GitHub</a>
+    </nav>
+
+    <div class="header-right">
+      <div class="panel" style="padding:8px 12px;min-width:220px;margin-right:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="font-size:12px;color:rgba(255,255,255,0.9)">Курс (реал.время)</div>
+          <select id="rateBase" style="background:transparent;border:none;color:inherit;padding:6px 8px;border-radius:6px">
+            <option value="RUB">Цифр.рубль (RUB)</option>
+            <option value="USD">Доллар (USD)</option>
+            <option value="EUR">Евро (EUR)</option>
+            <option value="GHS">e-Cedi (GHS)</option>
+          </select>
+        </div>
+        <div id="ratesView" style="font-size:13px;margin-top:6px;opacity:0.95">Загрузка...</div>
+      </div>
+
+      <div class="panel" style="padding:8px 12px;min-width:260px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="font-size:12px;color:rgba(255,255,255,0.95)">MetaMask</div>
+          <button id="btnMetaConnect" style="padding:6px 10px;border-radius:8px">Подключить</button>
+        </div>
+        <div id="metaInfo" style="font-size:13px;margin-top:8px;opacity:0.9">Не подключено</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="bg-grid"><canvas id="grid" class="grid-canvas"></canvas></div>
+
+  <div class="stage">
+    <div class="left-col">
+      <div class="panel">
+        <h1 class="header">Генератор событий</h1>
+        <div class="sub">Создавайте игровые события (прогресс, время, задания). Подписи эмулируются локально.</div>
+        <div class="controls">
+          <div class="row"><label class="muted">Идентификатор игры</label><input id="gameId" type="text" value="octocore.v1"/></div>
+          <div class="row"><label class="muted">Число игроков</label><input id="players" type="number" value="5" min="1"/></div>
+          <div class="row"><label class="muted">Событий за запуск</label><input id="batch" type="number" value="10" min="1"/></div>
+          <div class="row"><label class="muted">Средняя сессия (мин)</label><input id="avgSession" type="number" value="42" min="1"/></div>
+          <div class="row"><label class="muted">Seed (опц.)</label><input id="seed" type="text" placeholder="random"/></div>
+
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button id="btnGenerate">Симулировать событие</button>
+            <button id="btnBatch">Запустить батч</button>
+          </div>
+
+          <div class="metrics" style="margin-top:12px">
+            <div class="metric"><div class="big" id="metricEvents">0</div><div class="small">Событий</div></div>
+            <div class="metric"><div class="big" id="metricPlayers">0</div><div class="small">Игроков</div></div>
+            <div class="metric"><div class="big" id="metricPayout">0</div><div class="small">Итого выплат</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h1 class="header">Сценарии выплат</h1>
+        <div class="sub">Выберите канал выплат / модель вознаграждений</div>
+        <div class="scenario-list">
+          <div class="scenario active" data-scenario="cbdc">CBDC — микровыплаты (e‑Cedi / цифровой рубль)</div>
+          <div class="scenario" data-scenario="token">Ончейн- токены (mint & transfer)</div>
+          <div class="scenario" data-scenario="data_sell">Продажа данных (маркетплейс)</div>
+          <div class="scenario" data-scenario="ad_task">Brand-кампания (платит бренд)</div>
+        </div>
+
+        <div style="margin-top:10px" class="muted">Тип организации:</div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button id="btnPrivate" class="badge">Частная</button>
+          <button id="btnGov" class="badge">Гос/Публичная</button>
+          <div style="flex:1"></div>
+        </div>
+
+      </div>
+
+      <div class="panel">
+        <h1 class="header">Диагностика</h1>
+        <div class="sub">Набор быстрых тестов для проверки MetaMask и логирования.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button id="btnDiagNoProvider">Тест: нет провайдера</button>
+          <button id="btnDiagThrow">Тест: симулировать ошибку</button>
+          <button id="btnDiagStringify">Тест: safeStringify</button>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="center-col">
+      <div class="panel">
+        <h1 class="header">Движок вознаграждений — Симуляция</h1>
+        <div class="sub">Настройте правила начисления: время, уровни и платные планы.</div>
+        <div style="display:flex;gap:12px">
+          <div style="flex:1">
+            <div class="row"><label class="muted">Оплата за 60 мин (fiat/CBDC)</label><input id="payPerHour" type="number" value="0.10" step="0.01"/></div>
+            <div class="row"><label class="muted">Выплата за уровень</label><input id="milestonePay" type="number" value="0.50" step="0.01"/></div>
+            <div class="row"><label class="muted">Доля при продаже данных %</label><input id="dataShare" type="number" value="0.15" step="0.01" min="0" max="1"/></div>
+            <div class="row"><label class="muted">Коэффициент для ГОС</label><input id="govMul" type="number" value="1.25" step="0.05" min="0.5"/></div>
+            <div class="row" style="margin-top:8px"><label class="muted">KYC требуется при выплате &gt;</label><input id="kycThreshold" type="number" value="5" step="0.01"/></div>
+          </div>
+          <div style="width:260px">
+            <div class="row"><label class="muted">Налог %</label><input id="taxRate" type="number" value="0.05" step="0.01" min="0" max="1"/></div>
+            <div class="row"><label class="muted">Дневной лимит (tokens)</label><input id="dailyCap" type="number" value="10" step="1" min="0"/></div>
+            <div style="margin-top:10px" class="muted">Анти-фрод</div>
+            <div class="row"><label class="muted">Уменьшение выплат (в час)</label><input id="diminish" type="number" value="0.95" step="0.01" min="0.5" max="1"/></div>
+            <div class="row"><label class="muted">Требуемый stake (tokens)</label><input id="stakeReq" type="number" value="1" step="0.1"/></div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+          <button id="btnApplyRules">Применить</button>
+          <button id="btnReset">Сброс</button>
+          <div style="flex:1"></div>
+          <div class="muted">Статус: <span id="statusRules">idle</span></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h1 class="header">Поток событий (Live Flow)</h1>
+        <div class="sub">События проходят: Gateway → Rewards Engine → Settlement Adapter</div>
+        <div class="row" style="gap:12px">
+          <div style="flex:1">
+            <div class="log" id="log"></div>
+          </div>
+          <div style="width:300px">
+            <h2 class="muted" style="margin-top:0">Итоги</h2>
+            <div class="row"><div class="muted">Выплачено:</div><div style="flex:1"></div><div id="settledCount">0</div></div>
+            <div class="row"><div class="muted">В процессе:</div><div style="flex:1"></div><div id="pendingCount">0</div></div>
+            <div class="row"><div class="muted">Флаги/Предупреждения:</div><div style="flex:1"></div><div id="flagCount">0</div></div>
+            <div style="height:10px"></div>
+            <button id="btnExport">Экспорт лога</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h1 class="header">Settlement Adapter — Mock API'ы</h1>
+        <div class="sub">Здесь эмулируются: CBDC (EMTECH), mint токенов, продажа данных, brand-платежи.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div>
+            <div class="muted">EMTECH e‑Cedi (sandbox)</div>
+            <div class="row"><button id="btnConnectEcedi">Подключить sandbox</button><div id="ectag" class="muted">отключено</div></div>
+          </div>
+          <div>
+            <div class="muted">Цифр. рубль (mock)</div>
+            <div class="row"><button id="btnConnectRub">Подключить sandbox</button><div id="rubtag" class="muted">отключено</div></div>
+          </div>
+          <div>
+            <div class="muted">Ончейн токен (testnet)</div>
+            <div class="row"><button id="btnTokenMock">Эмуляция mint</button><div id="tokentag" class="muted">готово</div></div>
+          </div>
+          <div>
+            <div class="muted">Data Marketplace</div>
+            <div class="row"><button id="btnDataSell">Продать данные</button><div id="datatag" class="muted">ожидание</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="right-col">
+      <div class="panel">
+        <h1 class="header">Каталог игроков</h1>
+        <div class="sub">Случайно генерируемые игроки (DID-style). Можно задать stake вручную.</div>
+        <div id="playersList" style="display:flex;flex-direction:column;gap:6px"></div>
+        <div style="margin-top:8px;display:flex;gap:8px">
+          <button id="btnAddPlayer">Добавить игрока</button>
+          <button id="btnClearPlayers">Очистить</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h1 class="header">Маркетплейс данных</h1>
+        <div class="sub">Параметры продажи данных и распределение прибыли.</div>
+        <div class="row"><label class="muted">Средняя цена набора данных</label><input id="dataPrice" type="number" value="5" step="0.5"/></div>
+        <div class="row"><label class="muted">Доля игрокам %</label><input id="dataSplit" type="number" value="0.6" step="0.05" min="0" max="1"/></div>
+        <div style="display:flex;gap:8px;margin-top:8px"><button id="btnSimDataSale">Симуляция продажи</button><button id="btnClearLog">Очистить лог</button></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="footer">Holographic Rewards Gateway — симуляция • single-file прототип</div>
+
+  <script>
+  // Backward-compatible ES5-style implementation (no const/let/=>/`template`/BigInt-literals)
+  var EXCHANGE_RATE_HOST = 'https://api.exchangerate.host/latest';
+  var COINGECKO_SIMPLE = 'https://api.coingecko.com/api/v3/simple/price';
+
+  var state = { events:0, players:[], settled:0, pending:0, flags:0, payouts:0, rules:{ payPerHour:0.1, milestonePay:0.5, dataShare:0.15, govMul:1.25, kycThreshold:5, taxRate:0.05, dailyCap:10, diminish:0.95, stakeReq:1 }, scenario:'cbdc', company:'private', seed:null, rng:null, logs:[], rates:{} };
+
+  function $(id){ return document.getElementById(id); }
+
+  // Safe stringify without WeakSet/BigInt-literals
+  function safeStringify(obj, space){
+    space = space || 0;
+    var seen = [];
+    try{
+      return JSON.stringify(obj, function(key, value){
+        // Handle Error objects
+        if(value && typeof value === 'object' && typeof value.message === 'string' && typeof value.stack === 'string'){
+          return { __error:true, name: value.name, message: value.message, stack: value.stack };
+        }
+        if(typeof value === 'object' && value !== null){
+          for(var i=0;i<seen.length;i++){ if(seen[i] === value) return '[Circular]'; }
+          seen.push(value);
+        }
+        // avoid throwing on unknown types
+        try{ return value; }catch(e){ return String(value); }
+      }, space);
+    }catch(e){
+      try{ return String(obj); }catch(ee){ return '[[unserializable]]'; }
+    }
+  }
+
+  // addLog - robust
+  function addLog(level, title, data){
+    try{
+      var entry = { ts: (new Date()).toISOString(), level: level, title: title, data: data };
+      state.logs.push(entry);
+      var dataStr = '';
+      if(typeof data === 'string') dataStr = data;
+      else dataStr = safeStringify(data, 2);
+
+      var logEl = $('log');
+      if(logEl){
+        var div = document.createElement('div'); div.className = 'entry';
+        var pill = document.createElement('span'); pill.className = 'pill ' + (level === 'ok' ? 'success' : (level === 'warn' ? 'warn' : 'err')); pill.textContent = level.toUpperCase();
+        div.appendChild(pill);
+        var codeEl = document.createElement('code'); codeEl.style.marginLeft = '8px'; codeEl.textContent = title + ' — ' + dataStr;
+        div.appendChild(codeEl);
+        try{ logEl.insertBefore(div, logEl.firstChild); }catch(e){ try{ logEl.appendChild(div); }catch(ee){ console.log(title, dataStr); } }
+      } else {
+        try{ if(level === 'err') console.error(title, dataStr); else if(level === 'warn') console.warn(title, dataStr); else console.log(title, dataStr); }catch(e){ /* swallow */ }
+      }
+
+      if(state.logs.length > 1000) state.logs.shift();
+      updateMetrics();
+    }catch(e){ try{ console.error('addLog failed', e); }catch(ee){} }
+  }
+
+  function updateMetrics(){
+    try{
+      var me = $('metricEvents'); if(me) me.textContent = String(state.events);
+      var mp = $('metricPlayers'); if(mp) mp.textContent = String(state.players.length);
+      var mpayout = $('metricPayout'); if(mpayout) mpayout.textContent = Number(state.payouts).toFixed(2);
+      var settled = $('settledCount'); if(settled) settled.textContent = String(state.settled);
+      var pending = $('pendingCount'); if(pending) pending.textContent = String(state.pending);
+      var flagc = $('flagCount'); if(flagc) flagc.textContent = String(state.flags);
+    }catch(e){ console.warn('updateMetrics failed', e); }
+  }
+
+  // Rates fetch (uses fetch if available)
+  function fetchFiatRates(base, symbols){
+    base = base || 'RUB';
+    symbols = symbols || ['RUB','USD','EUR','GHS'];
+    try{
+      var url = EXCHANGE_RATE_HOST + '?base=' + encodeURIComponent(base) + '&symbols=' + encodeURIComponent(symbols.join(','));
+      if(typeof fetch === 'function'){
+        fetch(url).then(function(res){
+          if(!res.ok) throw new Error('exchange API response not ok ' + res.status);
+          return res.json();
+        }).then(function(j){
+          state.rates = j.rates || {};
+          updateRatesView(base);
+          addLog('ok','Курсы обновлены', { base: base, rates: state.rates });
+        }).catch(function(err){ addLog('err','Ошибка получения курсов', err && err.message ? err.message : String(err)); });
+      } else {
+        // fallback: XMLHttpRequest
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.onreadystatechange = function(){ if(xhr.readyState===4){ if(xhr.status>=200 && xhr.status<300){ try{ var j = JSON.parse(xhr.responseText); state.rates = j.rates || {}; updateRatesView(base); addLog('ok','Курсы обновлены', { base: base, rates: state.rates }); }catch(e){ addLog('err','Ошибка парсинга курсов', String(e)); } } else { addLog('err','Ошибка получения курсов XHR', xhr.status); } }};
+        xhr.send();
+      }
+    }catch(e){ addLog('err','fetchFiatRates failed', String(e)); }
+  }
+
+  function updateRatesView(base){
+    try{
+      var el = $('ratesView'); if(!el) return; var r = state.rates || {};
+      var keys = Object.keys(r);
+      if(!keys || keys.length === 0){ el.textContent = 'нет данных'; return; }
+      var parts = [];
+      var syms = ['RUB','USD','EUR','GHS'];
+      for(var i=0;i<syms.length;i++){ var sym = syms[i]; if(sym === base) continue; if(typeof r[sym] !== 'undefined') parts.push(sym + ': ' + Number(r[sym]).toFixed(4)); }
+      el.textContent = parts.join('  •  ');
+    }catch(e){ console.warn('updateRatesView failed', e); }
+  }
+
+  var rateBaseEl = $('rateBase');
+  if(rateBaseEl) rateBaseEl.addEventListener('change', function(){ fetchFiatRates(rateBaseEl.value); updateMetaFiatDisplay(); });
+  fetchFiatRates(rateBaseEl ? rateBaseEl.value : 'RUB');
+  setInterval(function(){ fetchFiatRates(rateBaseEl ? rateBaseEl.value : 'RUB'); }, 30000);
+
+  // MetaMask
+  function weiHexToEthString(weiHex){
+    try{
+      if(!weiHex) return '0';
+      // BigInt may not be available in very old engines, so parse manually
+      // We try BigInt if present
+      try{
+        if(typeof BigInt === 'function'){
+          var wei = BigInt(weiHex);
+          var abs = wei < 0n ? -wei : wei;
+          var s = String(abs).padStart(19, '0');
+          var intPart = s.slice(0, -18) || '0';
+          var frac = s.slice(-18).replace(/0+$/, '');
+          if(frac.length > 6) frac = frac.slice(0,6);
+          return (wei < 0n ? '-' : '') + intPart + (frac ? '.' + frac : '');
+        }
+      }catch(e){ /* ignore BigInt path */ }
+      // Fallback: try parse as decimal via parseInt on hex
+      var num = parseInt(weiHex, 16);
+      if(isNaN(num)) return '0';
+      var eth = (num / Math.pow(10,18));
+      return String(Number(eth).toFixed(6));
+    }catch(e){ return '0'; }
+  }
+
+  var lastMeta = { account: null, balanceEthStr: '0', cgId: 'ethereum', prices: { rub:0, usd:0, eur:0 } };
+
+  function updateMetaFiatDisplay(){
+    try{
+      var metaInfoEl = $('metaInfo'); if(!metaInfoEl) return; if(!lastMeta.account){ metaInfoEl.textContent = 'Не подключено'; return; }
+      var ethStr = lastMeta.balanceEthStr || '0'; var ethNum = Number(String(ethStr).replace(',','.')) || 0; var base = (rateBaseEl ? rateBaseEl.value : 'RUB'); var price = (base === 'USD') ? lastMeta.prices.usd : (base === 'EUR' ? lastMeta.prices.eur : lastMeta.prices.rub); var approx = ethNum * (price || 0);
+      metaInfoEl.innerHTML = '<div style="font-size:13px">Аккаунт: ' + lastMeta.account.slice(0,8) + '…' + lastMeta.account.slice(-6) + '</div><div style="font-size:13px;margin-top:6px">Баланс: ' + ethStr + ' ' + lastMeta.cgId.toUpperCase() + ' · ≈ ' + (approx ? approx.toFixed(2) : '0.00') + ' ' + base + '</div>';
+    }catch(e){ console.warn('updateMetaFiatDisplay failed', e); }
+  }
+
+  function fetchCoingeckoPrices(cgId, cb){
+    cb = cb || function(){};
+    try{
+      var url = COINGECKO_SIMPLE + '?ids=' + encodeURIComponent(cgId) + '&vs_currencies=rub,usd,eur';
+      if(typeof fetch === 'function'){
+        fetch(url).then(function(res){ if(!res.ok) throw new Error('coingecko error ' + res.status); return res.json(); }).then(function(j){ cb(j[cgId] || {rub:0,usd:0,eur:0}); }).catch(function(err){ addLog('warn','CoinGecko fallback', err && err.message ? err.message : String(err)); cb({rub:0,usd:0,eur:0}); });
+      } else {
+        var xhr = new XMLHttpRequest(); xhr.open('GET', url, true); xhr.onreadystatechange = function(){ if(xhr.readyState===4){ if(xhr.status>=200 && xhr.status<300){ try{ var j = JSON.parse(xhr.responseText); cb(j[cgId] || {rub:0,usd:0,eur:0}); }catch(e){ addLog('warn','CoinGecko parse failed', String(e)); cb({rub:0,usd:0,eur:0}); } } else { addLog('warn','CoinGecko XHR failed', xhr.status); cb({rub:0,usd:0,eur:0}); } } }; xhr.send(); }
+    }catch(e){ addLog('warn','fetchCoingeckoPrices failed', String(e)); cb({rub:0,usd:0,eur:0}); }
+  }
+
+  function connectMetaMask(){
+    try{
+      if(typeof window === 'undefined' || !window.ethereum){ addLog('warn','MetaMask','не установлен'); if($('metaInfo')) $('metaInfo').textContent = 'MetaMask не обнаружен'; return; }
+      // request accounts
+      var reqPromise;
+      try{ reqPromise = window.ethereum.request({ method: 'eth_requestAccounts' }); }catch(e){ // some providers don't support .request
+        try{ reqPromise = Promise.resolve(window.ethereum.enable ? window.ethereum.enable() : []); }catch(ee){ reqPromise = Promise.reject(ee); }
+      }
+      reqPromise.then(function(accounts){
+        if(!accounts || accounts.length === 0){ addLog('warn','MetaMask','аккаунты не предоставлены'); if($('metaInfo')) $('metaInfo').textContent = 'Нет аккаунтов'; return; }
+        var account = accounts[0]; lastMeta.account = account;
+        // balance
+        var balancePromise;
+        try{ balancePromise = window.ethereum.request({ method: 'eth_getBalance', params: [account, 'latest'] }); }catch(e){ balancePromise = Promise.reject(e); }
+        balancePromise.then(function(balanceWeiHex){ lastMeta.balanceEthStr = weiHexToEthString(balanceWeiHex || '0x0');
+          // chain id
+          var chainPromise;
+          try{ chainPromise = window.ethereum.request({ method: 'eth_chainId' }); }catch(e){ chainPromise = Promise.resolve(null); }
+          chainPromise.then(function(chainIdHex){ var chainId = 1; try{ if(chainIdHex) chainId = parseInt(chainIdHex, 16); }catch(e){} var cgId = (chainId === 56) ? 'binancecoin' : ((chainId === 137) ? 'matic-network' : 'ethereum'); lastMeta.cgId = cgId; fetchCoingeckoPrices(cgId, function(pr){ lastMeta.prices = pr || {rub:0,usd:0,eur:0}; updateMetaFiatDisplay(); addLog('ok','MetaMask подключён', { account: account, balanceEth: lastMeta.balanceEthStr, cgId: cgId }); }); }).catch(function(e){ addLog('warn','chain read failed', String(e)); });
+        }).catch(function(e){ addLog('warn','Ошибка чтения баланса', e && e.message ? e.message : String(e)); });
+
+        // subscribe to events if provider supports
+        try{
+          if(window.ethereum && typeof window.ethereum.on === 'function'){
+            try{ window.ethereum.removeListener && window.ethereum.removeListener('accountsChanged', onAccountsChanged); }catch(e){}
+            try{ window.ethereum.on('accountsChanged', onAccountsChanged); }catch(e){}
+            try{ window.ethereum.removeListener && window.ethereum.removeListener('chainChanged', onChainChanged); }catch(e){}
+            try{ window.ethereum.on('chainChanged', onChainChanged); }catch(e){}
+          }
+        }catch(e){ console.warn('subscribe failed', e); }
+
+      }).catch(function(err){
+        var code = err && err.code ? err.code : undefined; var message = err && err.message ? err.message : String(err); var data = err && err.data ? (typeof err.data === 'string' ? err.data : (err.data.message || safeStringify(err.data))) : undefined; addLog('err','Не удалось подключиться к MetaMask', { code: code, message: message, data: data }); try{ if($('metaInfo')) $('metaInfo').textContent = 'Ошибка подключения'; }catch(e){}
+      });
+
+    }catch(err){ addLog('err','connectMetaMask critical', String(err)); }
+  }
+
+  function onAccountsChanged(accounts){ try{ if(!accounts || accounts.length === 0){ lastMeta.account = null; lastMeta.balanceEthStr = '0'; addLog('warn','MetaMask','аккаунт отключён'); updateMetaFiatDisplay(); return; } lastMeta.account = accounts[0]; addLog('ok','MetaMask accountsChanged', lastMeta.account); updateMetaBalance(); }catch(e){ console.warn('onAccountsChanged failed', e); } }
+
+  function onChainChanged(chainIdHex){ try{ addLog('ok','MetaMask chainChanged', String(chainIdHex)); var chainId = 1; try{ if(chainIdHex) chainId = parseInt(chainIdHex, 16); }catch(e){} var cgId = (chainId === 56) ? 'binancecoin' : ((chainId === 137) ? 'matic-network' : 'ethereum'); lastMeta.cgId = cgId; fetchCoingeckoPrices(cgId, function(pr){ lastMeta.prices = pr || {rub:0,usd:0,eur:0}; updateMetaBalance(); }); }catch(e){ console.warn('onChainChanged failed', e); } }
+
+  function updateMetaBalance(){ try{ if(!lastMeta.account || !window.ethereum) return; var balP; try{ balP = window.ethereum.request({ method: 'eth_getBalance', params: [lastMeta.account, 'latest'] }); }catch(e){ balP = Promise.reject(e); }
+    balP.then(function(balanceWeiHex){ lastMeta.balanceEthStr = weiHexToEthString(balanceWeiHex || '0x0'); fetchCoingeckoPrices(lastMeta.cgId, function(pr){ lastMeta.prices = pr || {rub:0,usd:0,eur:0}; updateMetaFiatDisplay(); }); }).catch(function(e){ addLog('warn','Не удалось обновить баланс', e && e.message ? e.message : String(e)); }); }catch(e){ console.warn('updateMetaBalance failed', e); } }
+
+  var btnMeta = $('btnMetaConnect'); if(btnMeta) btnMeta.addEventListener('click', function(){ connectMetaMask(); });
+
+  // Simulation core (ES5)
+  function makeRNG(seedStr){
+    var str = seedStr || String(Math.floor(Math.random()*1e9));
+    var h = 2166136261 >>> 0;
+    for(var i=0;i<str.length;i++) h = Math.imul(h ^ str.charCodeAt(i), 16777619) >>> 0;
+    return function(){ h += 0x6D2B79F5; var t = Math.imul(h ^ h >>> 15, 1 | h); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  }
+
+  function makePlayer(idx){ var id = 'did:player:' + Math.random().toString(36).slice(2,10) + '_' + idx; return { id: id, name: 'Игрок#' + (idx+1), stake:0, reputation: Math.random(), daily:0 }; }
+
+  function renderPlayers(){ try{ var el = $('playersList'); if(!el) return; el.innerHTML = ''; for(var i=0;i<state.players.length;i++){ var p = state.players[i]; var row = document.createElement('div'); row.style.display='flex'; row.style.gap='8px'; row.style.alignItems='center'; var label = document.createElement('div'); label.textContent = p.name + ' (' + p.id.split(':').pop() + ')'; label.style.flex='1'; var stake = document.createElement('input'); stake.type = 'number'; stake.value = p.stake; stake.style.width = '80px'; (function(pp){ stake.onchange = function(e){ pp.stake = Number(e.target.value); }; })(p); var btn = document.createElement('button'); btn.textContent = 'Удалить'; (function(ii){ btn.onclick = function(){ state.players.splice(ii,1); renderPlayers(); }; })(i); row.appendChild(label); row.appendChild(stake); row.appendChild(btn); el.appendChild(row); } updateMetrics(); }catch(e){ console.warn('renderPlayers failed', e); } }
+
+  var addPlayerBtn = $('btnAddPlayer'); if(addPlayerBtn) addPlayerBtn.addEventListener('click', function(){ state.players.push(makePlayer(state.players.length)); renderPlayers(); });
+  var clearPlayersBtn = $('btnClearPlayers'); if(clearPlayersBtn) clearPlayersBtn.addEventListener('click', function(){ state.players.length = 0; renderPlayers(); });
+  for(var i=0;i<5;i++) state.players.push(makePlayer(i)); renderPlayers();
+
+  var scenarioEls = document.querySelectorAll('.scenario'); for(var si=0;si<scenarioEls.length;si++){ (function(el){ el.addEventListener('click', function(){ var all = document.querySelectorAll('.scenario'); for(var j=0;j<all.length;j++){ all[j].classList.remove('active'); } el.classList.add('active'); state.scenario = el.getAttribute('data-scenario'); addLog('ok','Сценарий выбран', state.scenario); }); })(scenarioEls[si]); }
+
+  var btnPrivate = $('btnPrivate'); if(btnPrivate) btnPrivate.addEventListener('click', function(){ state.company = 'private'; addLog('ok','Организация','частная'); });
+  var btnGov = $('btnGov'); if(btnGov) btnGov.addEventListener('click', function(){ state.company = 'government'; addLog('ok','Организация','государственная'); });
+
+  function readRulesFromUI(){ try{ state.rules.payPerHour = Number($('payPerHour').value); state.rules.milestonePay = Number($('milestonePay').value); state.rules.dataShare = Number($('dataShare').value); state.rules.govMul = Number($('govMul').value); state.rules.kycThreshold = Number($('kycThreshold').value); state.rules.taxRate = Number($('taxRate').value); state.rules.dailyCap = Number($('dailyCap').value); state.rules.diminish = Number($('diminish').value); state.rules.stakeReq = Number($('stakeReq').value); if($('statusRules')) $('statusRules').textContent = 'applied'; addLog('ok','Правила применены', state.rules); }catch(e){ addLog('err','Ошибка чтения правил', String(e)); } }
+  var btnApplyRules = $('btnApplyRules'); if(btnApplyRules) btnApplyRules.addEventListener('click', readRulesFromUI);
+  var btnReset = $('btnReset'); if(btnReset) btnReset.addEventListener('click', function(){ try{ if($('payPerHour')) $('payPerHour').value='0.10'; if($('milestonePay')) $('milestonePay').value='0.50'; if($('dataShare')) $('dataShare').value='0.15'; if($('govMul')) $('govMul').value='1.25'; if($('kycThreshold')) $('kycThreshold').value='5'; if($('taxRate')) $('taxRate').value='0.05'; if($('dailyCap')) $('dailyCap').value='10'; if($('diminish')) $('diminish').value='0.95'; if($('stakeReq')) $('stakeReq').value='1'; readRulesFromUI(); addLog('ok','Правила сброшены','по умолчанию'); }catch(e){ addLog('err','Reset failed', String(e)); } });
+
+  var ecediConnected = false, rubConnected = false;
+  var btnConnectEcedi = $('btnConnectEcedi'); if(btnConnectEcedi) btnConnectEcedi.addEventListener('click', function(){ ecediConnected = !ecediConnected; if($('ectag')) $('ectag').textContent = ecediConnected ? 'подключено (sandbox)' : 'отключено'; addLog('ok','EMTECH sandbox', ecediConnected ? 'подключено' : 'отключено'); });
+  var btnConnectRub = $('btnConnectRub'); if(btnConnectRub) btnConnectRub.addEventListener('click', function(){ rubConnected = !rubConnected; if($('rubtag')) $('rubtag').textContent = rubConnected ? 'подключено (sandbox)' : 'отключено'; addLog('ok','Цифр.рубль sandbox', rubConnected ? 'подключено' : 'отключено'); });
+  var btnTokenMock = $('btnTokenMock'); if(btnTokenMock) btnTokenMock.addEventListener('click', function(){ addLog('ok','Token adapter','мок mint OK'); if($('tokentag')) $('tokentag').textContent='готово'; });
+  var btnDataSell = $('btnDataSell'); if(btnDataSell) btnDataSell.addEventListener('click', function(){ addLog('ok','Data marketplace','симулирована продажа'); if($('datatag')) $('datatag').textContent='продано'; });
+
+  function simulateEvent(player){
+    try{
+      state.events += 1;
+      var rng = state.rng || Math.random;
+      var types = ['time_played','milestone','ad_task'];
+      var type = types[Math.floor(rng()*types.length)];
+      var minutes = Math.max(1, Math.round((state.rules.diminish*60) + (rng()*60)));
+      var level = Math.ceil(rng()*30);
+      var evt = { player_id: player.id, game_id: ($('gameId')?$('gameId').value:'unknown'), session_id: 's_' + Math.random().toString(36).slice(2,8), event_type: type, progress_metric: { level: level, score: Math.round(rng()*200000), time_played_seconds: minutes*60 }, timestamp: (new Date()).toISOString(), proof: 'sig_mock_' + Math.random().toString(36).slice(2,8) };
+      addLog('ok','Ingest', evt);
+      processEvent(evt);
+    }catch(e){ addLog('err','simulateEvent failed', String(e)); }
+  }
+
+  function processEvent(evt){
+    try{
+      if(!evt.proof || !evt.player_id){ addLog('err','Валидация не пройдена', evt); state.flags += 1; return; }
+      state.pending += 1;
+      var player = null;
+      for(var i=0;i<state.players.length;i++){ if(state.players[i].id === evt.player_id){ player = state.players[i]; break; } }
+      if(!player){ addLog('err','Неизвестный игрок', evt.player_id); state.pending -= 1; state.flags += 1; return; }
+      var reward = 0;
+      if(evt.event_type === 'time_played'){ var hours = evt.progress_metric.time_played_seconds / 3600; reward = state.rules.payPerHour * hours; }
+      else if(evt.event_type === 'milestone'){ reward = state.rules.milestonePay; }
+      else if(evt.event_type === 'ad_task'){ reward = 0.2; }
+      if(state.company === 'government') reward *= state.rules.govMul;
+      try{ reward *= Math.pow(state.rules.diminish, player.daily || 0); }catch(e){}
+      if((player.daily + reward) > state.rules.dailyCap){ addLog('warn','Достигнут дневной лимит для ' + player.name, { cap: state.rules.dailyCap, attempted: player.daily + reward }); state.pending -= 1; state.flags += 1; return; }
+      if(reward > state.rules.kycThreshold && player.stake < state.rules.stakeReq){ addLog('warn','Требуется KYC или недостаточный stake', { player: player.id, reward: reward }); state.pending -= 1; state.flags += 1; return; }
+      if(state.scenario === 'cbdc'){ mockCBDCPayout(player, reward, evt); }
+      else if(state.scenario === 'token'){ mockTokenMint(player, reward, evt); }
+      else if(state.scenario === 'data_sell'){ mockDataContribution(player, reward, evt); }
+      else if(state.scenario === 'ad_task'){ mockBrandPayout(player, reward, evt); }
+    }catch(e){ addLog('err','processEvent failed', String(e)); }
+  }
+
+  function mockCBDCPayout(player, amount, evt){
+    try{
+      var connected = ecediConnected || rubConnected;
+      if(!connected){ addLog('err','CBDC адаптер не подключён', {}); state.pending -= 1; state.flags += 1; return; }
+      setTimeout(function(){ try{ var tax = amount * state.rules.taxRate; var net = Math.max(0, amount - tax); player.daily += amount; state.settled += 1; state.pending -= 1; state.payouts += net; addLog('ok','CBDC выплата', { player: player.name, gross: amount.toFixed(3), tax: tax.toFixed(3), net: net.toFixed(3) }); }catch(e){ addLog('err','mockCBDCPayout inner', String(e)); } }, 600 + Math.random()*1200);
+    }catch(e){ addLog('err','mockCBDCPayout failed', String(e)); }
+  }
+
+  function mockTokenMint(player, amount, evt){
+    try{
+      setTimeout(function(){ try{ var fee = amount * 0.002; var net = amount - fee; player.daily += amount; state.settled += 1; state.pending -= 1; state.payouts += net; addLog('ok','Mint & transfer', { player: player.name, amount: amount.toFixed(3), fee: fee.toFixed(3) }); }catch(e){ addLog('err','mockTokenMint inner', String(e)); } }, 400 + Math.random()*800);
+    }catch(e){ addLog('err','mockTokenMint failed', String(e)); }
+  }
+
+  function mockDataContribution(player, amount, evt){ try{ player.daily += amount; state.settled += 1; state.pending -= 1; addLog('ok','Данные записаны (вклад)', { player: player.name, contribution: amount.toFixed(3) }); }catch(e){ addLog('err','mockDataContribution failed', String(e)); } }
+
+  function mockBrandPayout(player, amount, evt){ try{ setTimeout(function(){ try{ var net = amount * 0.9; player.daily += amount; state.settled += 1; state.pending -= 1; state.payouts += net; addLog('ok','Brand payout', { player: player.name, gross: amount.toFixed(3), net: net.toFixed(3) }); }catch(e){ addLog('err','mockBrandPayout inner', String(e)); } }, 300 + Math.random()*500); }catch(e){ addLog('err','mockBrandPayout failed', String(e)); } }
+
+  var btnGenerate = $('btnGenerate'); if(btnGenerate) btnGenerate.addEventListener('click', function(){ try{ if(!state.rng) state.rng = Math.random; if(state.players.length === 0){ addLog('err','Нет игроков для симуляции'); return; } var p = state.players[Math.floor(Math.random()*state.players.length)]; simulateEvent(p); }catch(e){ addLog('err','btnGenerate handler', String(e)); } });
+
+  var btnBatch = $('btnBatch'); if(btnBatch) btnBatch.addEventListener('click', function(){ try{ var count = Number($('batch').value) || 10; var seed = $('seed').value || null; state.rng = seed ? makeRNG(seed) : Math.random; var playersCount = Number($('players').value) || state.players.length; while(state.players.length < playersCount) state.players.push(makePlayer(state.players.length)); renderPlayers(); for(var i=0;i<count;i++){ (function(ii){ setTimeout(function(){ var p = state.players[Math.floor(state.rng()*state.players.length)]; simulateEvent(p); }, ii*120); })(i); } }catch(e){ addLog('err','btnBatch handler', String(e)); } });
+
+  var btnSimDataSale = $('btnSimDataSale'); if(btnSimDataSale) btnSimDataSale.addEventListener('click', function(){ try{ var price = Number($('dataPrice').value); var split = Number($('dataSplit').value); var totalContrib = 0; for(var i=0;i<state.players.length;i++) totalContrib += (state.players[i].daily || 0); var revenue = price * (state.players.length || 1); var pool = revenue * split; var platform = revenue - pool; for(var pi=0;pi<state.players.length;pi++){ var p = state.players[pi]; var share = (p.daily || 0) / Math.max(1, totalContrib); var payout = pool * share; p.daily = 0; state.payouts += payout; addLog('ok','Выплата от продажи данных', { player: p.name, payout: payout.toFixed(3) }); } addLog('ok','Маркетплейс: продажа завершена', { revenue: revenue, pool: pool, platform: platform }); }catch(e){ addLog('err','btnSimDataSale handler', String(e)); } });
+
+  var btnExport = $('btnExport'); if(btnExport) btnExport.addEventListener('click', function(){ try{ var blob = new Blob([safeStringify(state.logs,2)], { type: 'application/json' }); var url = URL.createObjectURL(blob); var a = document.createElement('a'); a.href = url; a.download = 'simulation_log.json'; a.click(); URL.revokeObjectURL(url); }catch(e){ addLog('err','Экспорт лога не удался', String(e)); } });
+  var btnClearLog = $('btnClearLog'); if(btnClearLog) btnClearLog.addEventListener('click', function(){ try{ state.logs = []; var logEl = $('log'); if(logEl) logEl.innerHTML = ''; addLog('ok','Лог очищен',''); }catch(e){ addLog('err','Clear log failed', String(e)); } });
+
+  var btnDiagNoProvider = $('btnDiagNoProvider'); if(btnDiagNoProvider) btnDiagNoProvider.addEventListener('click', function(){ try{ var orig = window.ethereum; try{ window.ethereum = undefined; connectMetaMask(); addLog('ok','Diag no-provider done','no provider path completed'); }catch(e){} finally{ window.ethereum = orig; } }catch(e){ addLog('err','diag no provider failed', String(e)); } });
+
+  var btnDiagThrow = $('btnDiagThrow'); if(btnDiagThrow) btnDiagThrow.addEventListener('click', function(){ try{ var fake = { request: function(){ return Promise.reject({ code: 4001, message: 'User rejected simulated' }); }, on: function(){}, removeListener: function(){} }; var orig = window.ethereum; try{ window.ethereum = fake; connectMetaMask(); addLog('ok','Diag throw done','simulated provider error path'); }catch(e){} finally{ window.ethereum = orig; } }catch(e){ addLog('err','diag throw failed', String(e)); } });
+
+  var btnDiagStringify = $('btnDiagStringify'); if(btnDiagStringify) btnDiagStringify.addEventListener('click', function(){ try{ var a = {}; a.self = a; a.big = '123'; a.err = new Error('test'); addLog('ok','safeStringify test', a); }catch(e){ addLog('err','diag stringify failed', String(e)); } });
+
+  addLog('ok','Симуляция готова','Используйте левую панель для генерации событий.');
+
+  // Parallax grid (guarded)
+  (function(){ try{ var canvas = $('grid'); if(!canvas) return; var ctx = canvas.getContext && canvas.getContext('2d'); if(!ctx) return; function resize(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; } window.addEventListener('resize', resize); resize(); function draw(t){ try{ ctx.clearRect(0,0,canvas.width,canvas.height); var time = t/1000; var cols = 40; var rows = 20; var w = canvas.width; var h = canvas.height; for(var i=0;i<cols;i++){ var x = (i/cols)*w + Math.sin(time*0.6 + i)*6; ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.strokeStyle = 'rgba(120,180,255,0.03)'; ctx.lineWidth=1; ctx.stroke(); } for(var j=0;j<rows;j++){ var y = (j/rows)*h + Math.cos(time*0.8 + j)*6; ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.strokeStyle = 'rgba(200,140,255,0.03)'; ctx.lineWidth=1; ctx.stroke(); } }catch(e){} requestAnimationFrame(draw); } requestAnimationFrame(draw); }catch(e){ console.warn('grid draw failed', e); } })();
+  </script>
+</body>
+</html>
