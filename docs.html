@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Holographic Rewards — Документация интеграции</title>
+  <meta name="description" content="Подробная документация по интеграции Holographic Rewards Gateway: CBDC, токены, маркетплейс данных, интеграции для частных, бизнес и гос.органов" />
+  <style>
+    /* Стиль инфографики — AR/holographic feel */
+    :root{ --bg:#061028; --glass: rgba(255,255,255,0.03); --accent1:#7dc8ff; --accent2:#c878ff; --muted:rgba(255,255,255,0.65); --card:#0f1a2b; }
+    html,body{height:100%;margin:0;font-family:Inter,Roboto,Arial,sans-serif;background:linear-gradient(180deg,#031026 0%, #071836 50%);color:#e6f6ff}
+    header{position:sticky;top:0;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);backdrop-filter:blur(6px);padding:18px 28px;display:flex;align-items:center;gap:18px;border-bottom:1px solid rgba(255,255,255,0.03);z-index:10}
+    header img{height:36px}
+    header h1{font-size:18px;margin:0}
+    nav.toc{margin-left:auto;display:flex;gap:10px}
+    nav.toc a{color:var(--muted);text-decoration:none;padding:8px 10px;border-radius:8px;font-size:13px}
+    .container{max-width:1100px;margin:28px auto;padding:20px}
+    .grid{display:grid;grid-template-columns:360px 1fr;gap:20px}
+
+    /* левое меню инфографики */
+    .sidebar{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border:1px solid rgba(255,255,255,0.03);padding:14px;border-radius:12px}
+    .sidebar h3{margin:6px 0 12px 0}
+    .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,0.02);font-size:12px}
+    .kpi{display:flex;flex-direction:column;gap:8px}
+    .kpi .item{background:var(--card);padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.02)}
+
+    /* основной контент */
+    .doc{background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);padding:18px;border-radius:12px;border:1px solid rgba(255,255,255,0.03)}
+    h2{margin-top:8px;color:var(--accent1)}
+    h3{color:var(--accent2)}
+    p.lead{color:var(--muted);font-size:14px}
+    section{margin-bottom:20px}
+
+    /* кодовые блоки */
+    pre.code{background:#051227;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);overflow:auto;font-size:13px}
+    code.inline{background:rgba(255,255,255,0.02);padding:2px 6px;border-radius:6px}
+
+    /* карточки архитектуры */
+    .row-cards{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px}
+    .card{flex:1;min-width:220px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border-radius:10px;padding:12px;border:1px solid rgba(255,255,255,0.03)}
+
+    table{width:100%;border-collapse:collapse;margin-top:8px}
+    table th, table td{padding:8px;border-bottom:1px dashed rgba(255,255,255,0.03);text-align:left;font-size:13px}
+    .foot{font-size:12px;color:var(--muted)}
+
+    /* responsive */
+    @media (max-width:1000px){ .grid{grid-template-columns:1fr} .sidebar{order:2} }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="https://blockchainaccreditive.github.io/css/iokwa.svg" alt="logo" />
+    <h1>Holographic Rewards — Документация интеграции</h1>
+    <nav class="toc">
+      <a href="#overview">Обзор</a>
+      <a href="#architecture">Архитектура</a>
+      <a href="#api">API & Форматы</a>
+      <a href="#examples">Примеры</a>
+      <a href="#security">Безопасность</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="grid">
+      <aside class="sidebar">
+        <h3>Краткая навигация</h3>
+        <div class="kpi">
+          <div class="item"><strong>Цели</strong><div class="foot">Компенсация прогресса игроков, гибкая интеграция CBDC / токенов / маркетплейса данных</div></div>
+          <div class="item"><strong>Поддержка</strong><div class="foot">Web, Mobile, Unity, Unreal, Backend (Node/Java/Go/Python)</div></div>
+          <div class="item"><strong>Сценарии</strong><div class="foot">Частный / Бизнес / Государство — разные правила KYC/SLA/Отчётности</div></div>
+        </div>
+
+        <h3 style="margin-top:12px">Контрольные точки интеграции</h3>
+        <ol style="padding-left:16px;color:var(--muted)">
+          <li>Определить модель монетизации</li>
+          <li>Выбрать канал выплат (CBDC / on-chain token / data marketplace)</li>
+          <li>Зарегистрировать систему в sandbox (EMTECH / Цифровой рубль)</li>
+          <li>Настроить KYC / AML / Audit</li>
+          <li>Запуск пилота → интеграционное тестирование → выпуск</li>
+        </ol>
+
+        <h3 style="margin-top:12px">Контакты</h3>
+        <div class="foot">Техническая поддержка: dev@holographic.rewards</div>
+      </aside>
+
+      <main class="doc">
+        <!-- OVERVIEW -->
+        <section id="overview">
+          <h2>Обзор</h2>
+          <p class="lead">Holographic Rewards — модульный шлюз вознаграждений для игр и приложений. Позволяет начислять игрокам материальные вознаграждения за прогресс и время игры через различные каналы: CBDC (e‑Cedi, цифровой рубль), ончейн токены (ERC‑20 / EVM), и продажу анонимных наборов данных (маркетплейс).</p>
+
+          <h3>Ключевые понятия</h3>
+          <ul>
+            <li><strong>Gateway</strong> — центральный компонент: принимает события от клиента, рассчитывает вознаграждение и отправляет команду на settlement adapter.</li>
+            <li><strong>Settlement Adapter</strong> — адаптер к конкретной системе выплат (CBDC API, blockchain RPC, marketplace API).</li>
+            <li><strong>Event</strong> — структурированное сообщение о прогрессе игрока (time_played, milestone, task_completed).</li>
+            <li><strong>Rules Engine</strong> — конфигурируемая логика расчёта выплат (pay per hour, milestone rewards, diminishing returns, governance multipliers).</li>
+          </ul>
+
+          <h3>Поддерживаемые интеграции</h3>
+          <div class="row-cards">
+            <div class="card"><strong>CBDC</strong><div class="foot">EMTECH e‑Cedi, цифровой рубль — через sandbox API и production adapters.</div></div>
+            <div class="card"><strong>On‑chain</strong><div class="foot">Mint & transfer ERC‑20 / native token; подписанные транзакции через MetaMask / WalletConnect / Server signer.</div></div>
+            <div class="card"><strong>Data marketplace</strong><div class="foot">Сбор и продажа анонимных телеметрических данных — Filecoin/IPFS для хранения + маркеты для продажи.</div></div>
+          </div>
+        </section>
+
+        <!-- ARCHITECTURE -->
+        <section id="architecture">
+          <h2>Архитектура</h2>
+          <p class="lead">Единая архитектура позволяет подключать Gateway как API в любую игру или приложение. Стек типично включает клиентские SDK, backend-интегратор, Rules Engine и множество Settlement Adapter'ов.</p>
+
+          <h3>Компоненты</h3>
+          <table>
+            <tr><th>Компонент</th><th>Задачи</th></tr>
+            <tr><td>Client SDK</td><td>Формирование событий, подпись (по требованию), queue и ретрай</td></tr>
+            <tr><td>Gateway API</td><td>Приём событий, валидация, маршрутизация в Rules Engine</td></tr>
+            <tr><td>Rules Engine</td><td>Политики выплат, лимиты, KYC/AML checks</td></tr>
+            <tr><td>Settlement Adapters</td><td>Интеграция с CBDC, blockchain, платёжными провайдерами</td></tr>
+            <tr><td>Accounting</td><td>Рассчёт налогов, отчётность, reconciliation</td></tr>
+          </table>
+
+          <h3>Простой поток событий (sequence)</h3>
+          <ol style="color:var(--muted)">
+            <li>Клиент отправляет Event → Gateway (HTTPS POST или websocket)</li>
+            <li>Gateway валидирует событие, проверяет подпись</li>
+            <li>Rules Engine рассчитывает сумму и проверяет лимиты/KYC</li>
+            <li>Создаётся транзакция в Settlement Adapter</li>
+            <li>Settlement Adapter подтверждает выполнение — Accounting обновляет статус</li>
+          </ol>
+
+          <h3>JSON example: Event schema</h3>
+          <pre class="code">{
+  "event_id":"uuid-v4",
+  "game_id":"octocore.v1",
+  "player_id":"did:player:abcd1234",
+  "event_type":"time_played|milestone|task",
+  "progress_metric":{ "time_played_seconds":3600, "level":12, "score":12345 },
+  "timestamp":"2025-08-10T12:34:56Z",
+  "signature":"base64-or-did-auth-proof"
+}</pre>
+          <p class="foot">Подпись — опциональна, но обязательна для high-value выплат; используется сервисный ключ или DID-подпись клиента.</p>
+        </section>
+
+        <!-- API -->
+        <section id="api">
+          <h2>API & Форматы</h2>
+          <h3>1) Приём событий — POST /api/v1/events</h3>
+          <pre class="code">POST /api/v1/events
+Content-Type: application/json
+Authorization: Bearer &lt;gateway-api-key&gt;
+
+{ ... event as above ... }
+
+Response 202 Accepted
+{ "ingest_id":"uuid", "status":"queued" }
+</pre>
+
+          <h3>2) Webhook callback (async result)</h3>
+          <pre class="code">POST /webhooks/rewards
+Headers: X-Signature: hmac_sha256(&lt;secret&gt;, body)
+
+{ "ingest_id":"uuid","settlement_status":"settled","tx_ref":"ecedi-12345","amount":0.5 }
+</pre>
+
+          <h3>3) Управление правилами (Admin)</h3>
+          <pre class="code">GET /admin/rules
+POST /admin/rules  { name: 'payPerHour', value: 0.1 }
+</pre>
+
+          <h3>Примеры клиентской отправки (JavaScript)</h3>
+          <pre class="code">// Простой пример отправки события через fetch
+var evt = {
+  event_id: 'evt_' + Math.random().toString(36).slice(2),
+  game_id: 'octocore.v1',
+  player_id: 'did:player:abc',
+  event_type: 'time_played',
+  progress_metric: { time_played_seconds: 3600 },
+  timestamp: new Date().toISOString()
+};
+
+fetch('https://gateway.example.com/api/v1/events', {
+  method: 'POST', headers: { 'Content-Type':'application/json', 'Authorization':'Bearer YOUR_KEY' },
+  body: JSON.stringify(evt)
+}).then(function(r){ return r.json(); }).then(console.log).catch(console.error);
+</pre>
+
+          <h3>Server-side: Webhook verification (Node/Express)</h3>
+          <pre class="code">// Node.js express example
+var crypto = require('crypto');
+app.post('/webhooks/rewards', function(req,res){
+  var secret = process.env.WEBHOOK_SECRET;
+  var sig = req.headers['x-signature'];
+  var computed = crypto.createHmac('sha256', secret).update(JSON.stringify(req.body)).digest('hex');
+  if(!sig || sig !== computed){ res.status(401).end('invalid signature'); return; }
+  // обработать результат
+  res.status(200).send({ok:true});
+});
+</pre>
+
+          <h3>Idempotency и повторная обработка</h3>
+          <p class="foot">Каждое событие должно иметь уникальный <code class="inline">event_id</code>. Gateway гарантирует at-least-once delivery для Adapter'ов; Settlement Adapter должен быть идемпотентным (используйте <code class="inline">ingest_id</code> или <code class="inline">event_id</code> в качестве idempotency key).</p>
+        </section>
+
+        <!-- Examples per platform -->
+        <section id="examples">
+          <h2>Примеры интеграции по платформам</h2>
+
+          <h3>Веб (Browser)</h3>
+          <p class="foot">Подключите клиентский SDK/просто используйте fetch. Для on-chain выплат интегрируйте MetaMask / WalletConnect.</p>
+          <pre class="code">// Пример отправки события и запроса на выплату через сервера
+// Клиент -> Gateway: POST /api/v1/events
+// Gateway -> Rules Engine -> Settlement Adapter -> (EMTECH/Blockchain)
+</pre>
+
+          <h3>Mobile: iOS / Android / React Native</h3>
+          <p class="foot">Используйте native HTTP client; для on-chain интеграции используйте WalletConnect 2.0 для мобильных кошельков.</p>
+          <pre class="code">// Android (Kotlin) — отправка события (пример)
+/*
+val evtJson = ...
+val client = OkHttpClient()
+val req = Request.Builder().url("https://gateway.example.com/api/v1/events")
+  .header("Authorization", "Bearer YOUR_KEY")
+  .post(RequestBody.create(MediaType.parse("application/json"), evtJson))
+  .build()
+client.newCall(req).enqueue(...)
+*/
+</pre>
+
+          <h3>Unity (C#)</h3>
+          <p class="foot">В Unity используйте UnityWebRequest для отправки событий и подписи через native plugin, если нужен secure enclave.</p>
+          <pre class="code">// Unity C# — отправка простого события
+/*
+using UnityEngine.Networking;
+var evt = JsonUtility.ToJson(yourEvent);
+UnityWebRequest.Post("https://gateway.example.com/api/v1/events", evt);
+*/
+</pre>
+
+          <h3>Game engines — общие рекомендации</h3>
+          <ul>
+            <li>Клиент отправляет только события; бизнес-логика расчёта выплат выполняется на сервере.</li>
+            <li>Минимизируйте привязку секретов к клиенту — используйте transient tokens и server-side signing.</li>
+            <li>Поддерживайте оффлайн-очередь и ретрай — сетевые прерывания в играх обычны.</li>
+          </ul>
+
+          <h3>Backend: Node / Python / Java / Go</h3>
+          <p class="foot">При реализации Settlement Adapter'ов используйте проверенные SDK и HTTP clients; следите за retry, circuit breaker и idempotency.</p>
+
+          <h3>On-chain example (ethers.js) — mint & transfer</h3>
+          <pre class="code">// Node.js (ethers.js)
+const { ethers } = require('ethers');
+const provider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL);
+const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+const tokenAbi = [ 'function mint(address to, uint256 amount) external' ];
+const token = new ethers.Contract(process.env.TOKEN_ADDR, tokenAbi, wallet);
+await token.mint(playerAddress, ethers.utils.parseUnits('1.0', 18));
+</pre>
+
+          <h3>Smart contract (Solidity) — простой mintable ERC20</h3>
+          <pre class="code">// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract GameRewardToken is ERC20, Ownable {
+  constructor() ERC20("GameReward", "GRD") {}
+  function mint(address to, uint256 amount) external onlyOwner { _mint(to, amount); }
+}
+</pre>
+        </section>
+
+        <!-- Integration types -->
+        <section id="integration_types">
+          <h2>Интеграция: Частная, Бизнес, Государство</h2>
+
+          <h3>Частные интеграции (инди-разработчики и малые студии)</h3>
+          <ul>
+            <li>Используйте gateway sandbox key, lightweight KYC (если выплаты < threshold).</li>
+            <li>Примеры: внутриигровые микровыплаты для мобильных игр, платные подписки с выплатой за время.</li>
+            <li>Требования по audit: базовый логинг, экспорт журнала транзакций.</li>
+          </ul>
+
+          <h3>Бизнес (коммерческие студии и платформы)</h3>
+          <ul>
+            <li>Интеграция с бухгалтерией и налоговыми отчётами, SLA, SLA‑monitoring для выплат, KYC/AML партнёрство.</li>
+            <li>Обычно нужен серверный агрегатор (middleware) — чтобы скрывать секреты и управлять очередями выплат.</li>
+          </ul>
+
+          <h3>Гос. органы / публичные проекты</h3>
+          <ul>
+            <li>Строгое соответствие нормативам, требование audit trail, подробный регламент доступа и межведомственное взаимодействие.</li>
+            <li>Интеграция с CBDC API (как EMTECH) через официальный sandbox и подписанные API‑ключи, регулярные проверки безопасности.</li>
+          </ul>
+
+          <h3>Таблица сравнения требований</h3>
+          <table>
+            <tr><th>Аспект</th><th>Частные</th><th>Бизнес</th><th>Гос</th></tr>
+            <tr><td>KYC</td><td>опционально</td><td>обязательно выше threshold</td><td>обязательно, строгий</td></tr>
+            <tr><td>SLA</td><td>низкий</td><td>высокий</td><td>очень высокий / регламентированный</td></tr>
+            <tr><td>Отчётность</td><td>минимальная</td><td>фин. отчётность + налог</td><td>полные логи, аудит</td></tr>
+          </table>
+        </section>
+
+        <!-- Security -->
+        <section id="security">
+          <h2>Безопасность, соответствие и операции</h2>
+
+          <h3>1. Аутентификация и авторизация</h3>
+          <ul>
+            <li>API Keys: строгие права (scopes) — разделяйте write/read/admin.</li>
+            <li>Webhook secret: HMAC signature для проверки источника.</li>
+            <li>Для on-chain: используйте безопасное хранение приватных ключей (HSM / KMS).</li>
+          </ul>
+
+          <h3>2. Подписи и доказательства</h3>
+          <p class="foot">Для high-value транзакций требуется cryptographic proof: DID‑подпись, JWT signed by client, или service-side signed request.</p>
+
+          <h3>3. KYC/AML</h3>
+          <p class="foot">Интеграция со сторонними провайдерами KYC (Jumio, Onfido и т.п.) по необходимости. Threshold для KYC настраивается в Rules Engine.</p>
+
+          <h3>4. Anti‑fraud</h3>
+          <ul>
+            <li>Rate limits и anomaly detection (странные паттерны сессий).</li>
+            <li>Детектирование мультиаккаунтов и временных паттернов (анти-bot).</li>
+            <li>Автоматические блокировки по правилам.</li>
+          </ul>
+
+          <h3>5. Compliance & Logging</h3>
+          <ul>
+            <li>Все транзакции логировать: event_id, ingest_id, settlement_id, timestamps, responsible_actor.</li>
+            <li>Хранение audit trail минимум 5 лет — зависит от юрисдикции.</li>
+          </ul>
+        </section>
+
+        <!-- Testing and deployment -->
+        <section id="testing">
+          <h2>Тестирование и деплой</h2>
+          <h3>Sandbox режим</h3>
+          <p class="foot">Всегда начинайте с sandbox адаптеров (EMTECH sandbox, testnet для блокчейнов). В sandbox можно тестировать без реальных сущностей.</p>
+
+          <h3>Набор тестов</h3>
+          <ul>
+            <li>Unit tests: Rules Engine расчёты (payPerHour, milestone)</li>
+            <li>Integration tests: Gateway → Adapter (mock сервера)</li>
+            <li>End-to-end: Клиент → Gateway → Settlement → Webhook</li>
+          </ul>
+
+          <h3>Пример теста (Node + Mocha + Supertest)</h3>
+          <pre class="code">var request = require('supertest');
+var app = require('../app');
+
+describe('POST /api/v1/events', function(){
+  it('should accept event', function(done){
+    request(app).post('/api/v1/events')
+      .send({ event_id:'test1', game_id:'g', player_id:'p1', event_type:'time_played', progress_metric:{time_played_seconds:3600} })
+      .expect(202, done);
+  });
+});
+</pre>
+
+          <h3>Мониторинг</h3>
+          <ul>
+            <li>Метрики: latency (gateway/adapters), success_rate, payout_volume</li>
+            <li>Алерты: повышенная ошибка адаптера, queue backlog, необычный spike в выплатах</li>
+          </ul>
+        </section>
+
+        <!-- Economics -->
+        <section id="economics">
+          <h2>Экономика и модели монетизации</h2>
+          <p class="lead">Ниже — типовые модели монетизации и примеры расчёта.</p>
+
+          <h3>Модели</h3>
+          <ol style="color:var(--muted)">
+            <li><strong>Pay‑per‑time</strong> — выплата за проведённое время (например 0.10 USD за 60 минут)</li>
+            <li><strong>Milestone</strong> — фиксированная выплата за достижения (уровень, миссия)</li>
+            <li><strong>Revenue share / Data sale</strong> — доход от продажи анонимных данных распределяется между игроками</li>
+          </ol>
+
+          <h3>Пример распределения (Data marketplace)</h3>
+          <p class="foot">Если набор данных продан за 100 USD и договорено, что игроки получают 60%:</p>
+          <pre class="code">revenue = 100
+players_pool = 0.6 * revenue = 60
+player_share = (player_contrib / total_contrib) * players_pool
+</pre>
+        </section>
+
+        <section id="faq">
+          <h2>Частые вопросы</h2>
+          <h3>Как происходит конвертация курсов?</h3>
+          <p class="foot">Gateway использует доверенные источники курсов (exchangerate.host, CoinGecko). В production рекомендуется проксировать запросы через ваш backend и кэшировать курсы.</p>
+
+          <h3>Кто платит игрокам?</h3>
+          <p class="foot">Плательщик зависит от сценария: частная компания (бюджет проекта), бренд (ad Task), государство (грант / программа) или маркеплейс (revenue split).</p>
+        </section>
+
+        <section>
+          <h2>Резюме и рекомендации</h2>
+          <ul>
+            <li>Начните с sandbox, используйте event_id для идемпотентности.</li>
+            <li>Скрывайте секреты на сервере, все клиентские ключи — одноразовые/ограниченные.</li>
+            <li>Настройте KYC/AML и отчётность для бизнес/гос интеграций.</li>
+            <li>Разработайте политики anti‑fraud и мониторинг по метрикам.</li>
+          </ul>
+        </section>
+
+        <footer class="foot" style="margin-top:18px">Документация сгенерирована автоматически <!-- при необходимости могу расширить разделы: подробные API‑контракты для EMTECH, цифрового рубля, примеры smart‑contracts и CI/CD сценарии по деплою. --> </footer>
+      </main>
+    </div>
+  </div>
+
+</body>
+</html>
