@@ -43,12 +43,16 @@
       <a href="#">GitHub</a>
     </nav>
 
+<center>
+Курс CBDC фиксирован и равен курсу фиатной валюты, которая используется в стране, 1 единица цифровой валюты равна 1 единице традиционной валюты.
+</center>
+
     <div class="header-right">
       <div class="panel" style="padding:8px 12px;min-width:220px;margin-right:8px">
         <div style="display:flex;align-items:center;gap:8px">
           <div style="font-size:12px;color:rgba(255,255,255,0.9)">Курс (реал.время)</div>
           <select id="rateBase" style="background:transparent;border:none;color:inherit;padding:6px 8px;border-radius:6px">
-            <option value="RUB">Цифр.рубль (RUB)</option>
+            <option value="RUB">Рубль (RUB)</option>
             <option value="USD">Доллар (USD)</option>
             <option value="EUR">Евро (EUR)</option>
             <option value="GHS">e-Cedi (GHS)</option>
@@ -103,8 +107,8 @@
         <h1 class="header">Сценарии выплат</h1>
         <div class="sub">Выберите канал выплат / модель вознаграждений</div>
         <div class="scenario-list">
-          <div class="scenario active" data-scenario="cbdc">CBDC — микровыплаты (e‑Cedi / цифровой рубль)</div>
-          <div class="scenario" data-scenario="token">Ончейн- токены (mint & transfer)</div>
+          <div class="scenario active" data-scenario="cbdc">CBDC — микровыплаты (e-CNY / e‑CEDI / e-EURO / e-RUBLE)</div>
+          <div class="scenario" data-scenario="token">Ончейн- токены (mint & transfer)</div> 
           <div class="scenario" data-scenario="data_sell">Продажа данных (маркетплейс)</div>
           <div class="scenario" data-scenario="ad_task">Brand-кампания (платит бренд)</div>
         </div>
@@ -186,7 +190,7 @@
             <div class="row"><button id="btnConnectEcedi">Подключить sandbox</button><div id="ectag" class="muted">отключено</div></div>
           </div>
           <div>
-            <div class="muted">Цифр. рубль (mock)</div>
+            <div class="muted">ЦБ РФ Цифр. рубль (mock)</div>
             <div class="row"><button id="btnConnectRub">Подключить sandbox</button><div id="rubtag" class="muted">отключено</div></div>
           </div>
           <div>
