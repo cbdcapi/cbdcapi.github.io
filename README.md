@@ -1,2 +1,2 @@
-# -cbdcapi.github.io
-CBDC API
+# CBDC API
+
